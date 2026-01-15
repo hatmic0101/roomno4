@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NO.4</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gruppo&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="#" data-overlay="info" data-pl="Info" data-en="Info">Info</a>
+    <a href="#" data-overlay="kontakt" data-pl="Kontakt" data-en="Contact">Kontakt</a>
+    <a href="#" data-overlay="wydarzenia" data-pl="Wydarzenia" data-en="Events">Wydarzenia</a>
+    <a href="#" data-overlay="soon" data-pl="Coming Soon" data-en="Coming Soon">Coming&nbsp;Soon</a>
+  </nav>
+
+  <button class="mobile-menu-btn">MENU</button>
+
+  <div class="lang-switch en" id="langToggle">
+    <span class="lang-text pl">PL</span>
+    <span class="lang-text en active">EN</span>
+    <div class="lang-pill"></div>
+  </div>
+</header>
+
+<!-- MOBILE MENU OVERLAY -->
+<div class="overlay" id="mobileMenuOverlay">
+  <div class="overlay-box">
+    <nav>
+      <a href="#" data-overlay="info">Info</a>
+      <a href="#" data-overlay="kontakt">Contact</a>
+      <a href="#" data-overlay="wydarzenia">Events</a>
+      <a href="#" data-overlay="soon">Coming&nbsp;Soon</a>
+    </nav>
+    <span class="close">×</span>
+  </div>
+</div>
+
+<main>
+  <div class="logo-top">
+    <img src="logo_nr4.jpg" alt="room.nr.4">
+  </div>
+
+  <div class="cta">
+    <button class="reserve-btn" data-pl="ZAPISZ SIĘ" data-en="SIGN UP">
+      SIGN UP
+    </button>
+  </div>
+
+  <div class="spacer"></div>
+
+  <div class="arabic-text" dir="rtl">
+    <p class="arabic-title">أهلاً بكم في الغرفة رقم 4</p>
+    <p class="arabic-sub">استعدوا لأروع حفلة في حياتكم.</p>
+  </div>
+
+  <div class="spacer"></div>
+
+  <div class="logo-bottom">
+    <img src="logo_nr4.jpg" alt="room.nr.4">
+  </div>
+</main>
+
+<section class="spotify">
+  <iframe
+    src="https://open.spotify.com/embed/playlist/70GpMVRWuR0evzgBr0P8gZ"
+    loading="lazy"
+    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
+  </iframe>
+</section>
+
+<footer>
+  <span>NO.4</span>
+</footer>
+
+<!-- SIGN UP -->
+<div class="overlay" id="reserveOverlay">
+  <div class="overlay-box">
+    <h2 data-pl="Zapisz się" data-en="Sign up">Sign up</h2>
+
+    <form class="reserve-form">
+      <input
+        type="text"
+        placeholder="Name"
+        data-pl="Imię"
+        data-en="Name"
+        minlength="2"
+        maxlength="30"
+        required
+      >
+
+      <input
+        type="email"
+        placeholder="Email"
+        data-pl="Email"
+        data-en="Email"
+        minlength="5"
+        maxlength="60"
+        required
+      >
+
+      <input
+        type="tel"
+        placeholder="+48 509900691"
+        inputmode="numeric"
+        maxlength="15"
+        required
+      >
+
+      <button type="submit" class="submit-btn" data-pl="Zapisz się" data-en="Sign up">
+        Sign up
+      </button>
+    </form>
+
+    <!-- ✅ NEW: FORM ERROR -->
+    <p class="form-error" style="display:none;"></p>
+
+    <div class="signup-result" style="display:none;">
+      <p data-pl="Do zobaczenia!" data-en="See you!">See you!</p>
+      <p><strong id="userNumber">#</strong></p>
+    </div>
+
+    <span class="close">×</span>
+  </div>
+</div>
+
+<!-- INFO -->
+<div class="overlay" id="overlay-info">
+  <div class="overlay-box">
+    <h2>Info</h2>
+    <p>09.02</p>
+    <p>22:00 – 05:00</p>
+    <span class="close">×</span>
+  </div>
+</div>
+
+<!-- KONTAKT -->
+<div class="overlay" id="overlay-kontakt">
+  <div class="overlay-box">
+    <h2>Contact</h2>
+    <p>Maciej Guliński</p>
+    <p>509 900 691</p>
+    <p>mac-gul123@wp.pl</p>
+    <span class="close">×</span>
+  </div>
+</div>
+
+<!-- WYDARZENIA -->
+<div class="overlay" id="overlay-wydarzenia">
+  <div class="overlay-box">
+    <h2>Events</h2>
+    <p>Coming soon</p>
+    <span class="close">×</span>
+  </div>
+</div>
+
+<!-- COMING SOON -->
+<div class="overlay" id="overlay-soon">
+  <div class="overlay-box">
+    <h2>Coming Soon</h2>
+    <p>More info soon</p>
+    <span class="close">×</span>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
