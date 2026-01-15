@@ -1,7 +1,7 @@
 // ===============================
 // CONFIG
 // ===============================
-const API_URL = "https://roomno4-production.up.railway.app/api";
+const API_URL = "https://api.roomno4.com/api";
 
 console.log("SCRIPT VERSION: SEE YOU");
 
