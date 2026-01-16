@@ -5,19 +5,16 @@ import cors from "cors";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
 
-
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ⬇️ POPRAWKA: TEN SAM PLIK CO U CIEBIE
-const DATA_FILE = path.join(process.cwd(), "data.json");
+const __dirname = process.cwd();
+const DATA_FILE = path.join(__dirname, "data.json");
 
-// ===============================
-// HELPERS
-// ===============================
+/* ================= DATA ================= */
 function readData() {
   if (!fs.existsSync(DATA_FILE)) {
     return { limit: 500, signups: [] };
@@ -29,10 +26,13 @@ function saveData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
-// ===============================
-// TELEGRAM
-// ===============================
+/* ================= TELEGRAM ================= */
 async function sendTelegramMessage(text) {
+  if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.TELEGRAM_CHAT_ID) {
+    console.warn("Telegram env missing");
+    return;
+  }
+
   const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
 
   await fetch(url, {
@@ -45,9 +45,7 @@ async function sendTelegramMessage(text) {
   });
 }
 
-// ===============================
-// STATUS
-// ===============================
+/* ================= API ================= */
 app.get("/api/status", (req, res) => {
   const data = readData();
   res.json({
@@ -56,9 +54,6 @@ app.get("/api/status", (req, res) => {
   });
 });
 
-// ===============================
-// SIGN UP
-// ===============================
 app.post("/api/signup", async (req, res) => {
   const { name, email, phone } = req.body;
 
@@ -77,41 +72,29 @@ app.post("/api/signup", async (req, res) => {
   }
 
   const number = data.signups.length + 1;
-
-  const signup = {
-    number,
-    name,
-    email,
-    phone,
-    createdAt: new Date().toISOString()
-  };
-
-  data.signups.push(signup);
+  data.signups.push({ number, name, email, phone, createdAt: new Date() });
   saveData(data);
 
-  // 📩 TELEGRAM
-  try {
-    await sendTelegramMessage(
+  await sendTelegramMessage(
 `🆕 NOWY ZAPIS #${number}
+👤 ${name}
+📧 ${email}
+📞 ${phone}`
+  );
 
-👤 Imię: ${name}
-📧 Email: ${email}
-📞 Telefon: ${phone}`
-    );
-  } catch (err) {
-    console.error("❌ Telegram error", err);
-  }
-
-  res.json({
-    success: true,
-    number,
-    limit: data.limit
-  });
+  res.json({ success: true, number, limit: data.limit });
 });
 
-// ===============================
-const PORT = process.env.PORT || 3000;
+/* ================= FRONTEND ================= */
+// ⬅️ TO JEST KLUCZ
+app.use(express.static(path.join(__dirname, "frontend")));
 
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "frontend/index.html"));
+});
+
+/* ================= START ================= */
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Backend running on port ${PORT}`);
+  console.log("🚀 Server running on port", PORT);
 });
