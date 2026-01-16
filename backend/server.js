@@ -1,12 +1,13 @@
 import express from "express";
-import fs from "fs";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
+import pkg from "pg";
 
 dotenv.config();
 
+const { Pool } = pkg;
 const app = express();
 
 /* ===============================
@@ -14,6 +15,14 @@ const app = express();
 ================================ */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+/* ===============================
+   POSTGRES (RAILWAY)
+================================ */
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
 
 /* ===============================
    CORS – TYLKO TWOJE DOMENY
@@ -25,35 +34,15 @@ app.use(cors({
   ],
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type"],
-  credentials: false
 }));
 
-// ⬇️ TO JEST KLUCZOWE (PRE-FLIGHT)
 app.options("*", cors());
-
-
 app.use(express.json());
 
 /* ===============================
    STATIC FRONTEND
 ================================ */
 app.use(express.static(path.join(__dirname, "public")));
-
-/* ===============================
-   DATA FILE
-================================ */
-const DATA_FILE = path.join(__dirname, "data.json");
-
-function readData() {
-  if (!fs.existsSync(DATA_FILE)) {
-    return { limit: 350, signups: [] };
-  }
-  return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
-}
-
-function saveData(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-}
 
 /* ===============================
    TELEGRAM
@@ -74,14 +63,21 @@ async function sendTelegramMessage(text) {
 /* ===============================
    API
 ================================ */
-app.get("/api/status", (req, res) => {
-  const data = readData();
-  res.json({
-    limit: data.limit,
-    count: data.signups.length
-  });
+
+// STATUS
+app.get("/api/status", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT COUNT(*) FROM signups");
+    res.json({
+      limit: 350,
+      count: Number(result.rows[0].count)
+    });
+  } catch (err) {
+    res.status(500).json({ error: "DB error" });
+  }
 });
 
+// SIGNUP
 app.post("/api/signup", async (req, res) => {
   const { name, email, phone } = req.body;
 
@@ -89,30 +85,45 @@ app.post("/api/signup", async (req, res) => {
     return res.status(400).json({ error: "Missing data" });
   }
 
-  const data = readData();
-
-  if (data.signups.find(s => s.email === email || s.phone === phone)) {
-    return res.status(409).json({ error: "Already registered" });
-  }
-
-  if (data.signups.length >= data.limit) {
-    return res.status(403).json({ error: "Limit reached" });
-  }
-
-  const number = data.signups.length + 1;
-
-  const signup = {
-    number,
-    name,
-    email,
-    phone,
-    createdAt: new Date().toISOString()
-  };
-
-  data.signups.push(signup);
-  saveData(data);
+  const client = await pool.connect();
 
   try {
+    await client.query("BEGIN");
+
+    // sprawdź czy już istnieje
+    const exists = await client.query(
+      "SELECT 1 FROM signups WHERE email = $1 OR phone = $2",
+      [email, phone]
+    );
+
+    if (exists.rowCount > 0) {
+      await client.query("ROLLBACK");
+      return res.status(409).json({ error: "Already registered" });
+    }
+
+    // numer = MAX + 1 (NIE resetuje się)
+    const nextNumberResult = await client.query(
+      "SELECT COALESCE(MAX(number), 0) + 1 AS next FROM signups"
+    );
+
+    const number = nextNumberResult.rows[0].next;
+    const LIMIT = 350;
+
+    if (number > LIMIT) {
+      await client.query("ROLLBACK");
+      return res.status(403).json({ error: "Limit reached" });
+    }
+
+    // insert
+    await client.query(
+      `INSERT INTO signups (number, name, email, phone)
+       VALUES ($1, $2, $3, $4)`,
+      [number, name, email, phone]
+    );
+
+    await client.query("COMMIT");
+
+    // telegram
     await sendTelegramMessage(
 `🆕 NOWY ZAPIS #${number}
 
@@ -120,15 +131,20 @@ app.post("/api/signup", async (req, res) => {
 📧 ${email}
 📞 ${phone}`
     );
-  } catch (e) {
-    console.error("Telegram error:", e);
-  }
 
-  res.json({
-    success: true,
-    number,
-    limit: data.limit
-  });
+    res.json({
+      success: true,
+      number,
+      limit: LIMIT
+    });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  } finally {
+    client.release();
+  }
 });
 
 /* ===============================
