@@ -3,7 +3,6 @@ import fs from "fs";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
-import fetch from "node-fetch";
 import { fileURLToPath } from "url";
 
 dotenv.config();
