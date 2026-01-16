@@ -152,6 +152,7 @@ main {
 /* SPACER */
 .spacer {
   height: 160vh;
+  width: 100%;
 }
 
 /* ARABIC TEXT */
@@ -179,6 +180,7 @@ main {
 .spotify {
   display: flex;
   justify-content: center;
+  align-items: center;
   padding: 120px 0;
 }
 
