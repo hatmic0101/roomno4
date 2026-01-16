@@ -24,9 +24,14 @@ app.use(cors({
     "https://roomno4.com",
     "https://www.roomno4.com"
   ],
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"]
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"],
+  credentials: false
 }));
+
+// ⬇️ TO JEST KLUCZOWE (PRE-FLIGHT)
+app.options("*", cors());
+
 
 app.use(express.json());
 
