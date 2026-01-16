@@ -46,7 +46,7 @@ const DATA_FILE = path.join(__dirname, "data.json");
 
 function readData() {
   if (!fs.existsSync(DATA_FILE)) {
-    return { limit: 500, signups: [] };
+    return { limit: 350, signups: [] };
   }
   return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
 }
