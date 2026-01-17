@@ -4,6 +4,7 @@
 const API_URL = "https://api.roomno4.com/api";
 
 console.log("SCRIPT VERSION: SEE YOU");
+let isSubmitting = false;
 
 // ===============================
 // WAIT FOR DOM
@@ -22,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const nameInput = reserveForm.querySelector('input[type="text"]');
   const emailInput = reserveForm.querySelector('input[type="email"]');
   const phoneInput = reserveForm.querySelector('input[type="tel"]');
+  const submitBtn = reserveForm.querySelector('button[type="submit"]');
 
   // ===============================
   // NEW: MOBILE MENU ELEMENTS
@@ -32,15 +34,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===============================
   // NEW: FORM ERROR ELEMENT
   // ===============================
-  const formError = document.querySelector(".form-error"); // NEW
+  const formError = document.querySelector(".form-error");
 
-  function showError(msg) {          // NEW
+  function showError(msg) {
     if (!formError) return;
     formError.textContent = msg;
     formError.style.display = "block";
   }
 
-  function clearError() {            // NEW
+  function clearError() {
     if (!formError) return;
     formError.style.display = "none";
     formError.textContent = "";
@@ -78,13 +80,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===============================
   // INPUT HARD BLOCKS (UX)
   // ===============================
-
-  // 👤 IMIĘ – tylko litery i spacje
   nameInput.addEventListener("input", () => {
     nameInput.value = nameInput.value.replace(/[^A-Za-zÀ-ž\s]/g, "");
   });
 
-  // 📞 TELEFON – tylko cyfry, + i spacje
   phoneInput.addEventListener("input", () => {
     phoneInput.value = phoneInput.value.replace(/[^0-9+ ]/g, "");
   });
@@ -149,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===============================
   reserveBtn.addEventListener("click", () => {
     closeAllOverlays();
-    clearError();                     // NEW
+    clearError();
     reserveForm.style.display = "flex";
     signupResult.style.display = "none";
     reserveOverlay.style.display = "flex";
@@ -172,40 +171,44 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===============================
   reserveForm.addEventListener("submit", async e => {
     e.preventDefault();
-    clearError();                     // NEW
+    clearError();
 
-    const name = nameInput.value.trim();
-    const email = emailInput.value.trim();
-    const phone = phoneInput.value.trim();
-
-    if (!/^[A-Za-zÀ-ž\s]{2,30}$/.test(name)) {
-      showError(
-        currentLang === "pl"
-          ? "Imię musi mieć 2–30 liter i nie może zawierać cyfr"
-          : "Name must be 2–30 letters and contain no digits"
-      );
-      return;
-    }
-
-    if (email.length < 5 || email.length > 60) {
-      showError(
-        currentLang === "pl"
-          ? "Email musi mieć 5–60 znaków"
-          : "Email must be 5–60 characters long"
-      );
-      return;
-    }
-
-    if (!/^[0-9+ ]{9,15}$/.test(phone)) {
-      showError(
-        currentLang === "pl"
-          ? "Numer telefonu musi mieć 9–15 cyfr i nie może zawierać liter"
-          : "Phone number must be 9–15 digits and contain no letters"
-      );
-      return;
-    }
+    if (isSubmitting) return;
+    isSubmitting = true;
+    submitBtn.disabled = true;
 
     try {
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      const phone = phoneInput.value.trim();
+
+      if (!/^[A-Za-zÀ-ž\s]{2,30}$/.test(name)) {
+        showError(
+          currentLang === "pl"
+            ? "Imię musi mieć 2–30 liter i nie może zawierać cyfr"
+            : "Name must be 2–30 letters and contain no digits"
+        );
+        return;
+      }
+
+      if (email.length < 5 || email.length > 60) {
+        showError(
+          currentLang === "pl"
+            ? "Email musi mieć 5–60 znaków"
+            : "Email must be 5–60 characters long"
+        );
+        return;
+      }
+
+      if (!/^[0-9+ ]{9,15}$/.test(phone)) {
+        showError(
+          currentLang === "pl"
+            ? "Numer telefonu musi mieć 9–15 cyfr i nie może zawierać liter"
+            : "Phone number must be 9–15 digits and contain no letters"
+        );
+        return;
+      }
+
       const res = await fetch(`${API_URL}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -225,14 +228,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       reserveForm.style.display = "none";
       signupResult.style.display = "block";
-
       userNumberEl.textContent = `#${data.number}`;
 
       if (limitNumberEl) {
         limitNumberEl.textContent = data.limit;
       }
 
-      reserveForm.reset();            // NEW – czyści formularz
+      reserveForm.reset();
 
     } catch (err) {
       console.error("REAL ERROR:", err);
@@ -241,6 +243,9 @@ document.addEventListener("DOMContentLoaded", () => {
           ? "Serwer niedostępny. Spróbuj później."
           : "Server unavailable. Try again later."
       );
+    } finally {
+      isSubmitting = false;
+      submitBtn.disabled = false;
     }
   });
 

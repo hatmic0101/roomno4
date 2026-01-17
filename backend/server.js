@@ -69,11 +69,11 @@ app.get("/api/status", async (req, res) => {
   try {
     const result = await pool.query("SELECT COUNT(*) FROM signups");
     res.json({
-      limit: 350,
+      limit: 400,
       count: Number(result.rows[0].count)
     });
   } catch (err) {
-    res.status(500).json({ error: "DB error" });
+    res.status(500).json({ error: "Server error" });
   }
 });
 
@@ -107,7 +107,7 @@ app.post("/api/signup", async (req, res) => {
     );
 
     const number = nextNumberResult.rows[0].next;
-    const LIMIT = 350;
+    const LIMIT = 400;
 
     if (number > LIMIT) {
       await client.query("ROLLBACK");
