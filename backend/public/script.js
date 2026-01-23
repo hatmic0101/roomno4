@@ -204,7 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // 🔴 STRIPE ENDPOINT
-      const res = await fetch(`${API_URL}/create-checkout-session`, {
+        const res = await fetch(`${API_URL}/create-checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, phone })
