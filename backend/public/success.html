@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Your Ticket – NO.4</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<main style="text-align:center; padding:40px">
+  <h1>Payment successful</h1>
+  <p>Your ticket is ready</p>
+
+  <div id="ticketBox" style="margin-top:30px; display:none;">
+    <img id="qrImage" alt="Ticket QR" style="width:260px" />
+    <p id="ticketCode" style="margin-top:15px; font-weight:bold;"></p>
+
+    <a id="downloadQr" download="ticket-qr.png">
+      Save QR code
+    </a>
+  </div>
+
+  <p id="error" style="color:red;"></p>
+</main>
+
+<script src="success.js"></script>
+</body>
+</html>
