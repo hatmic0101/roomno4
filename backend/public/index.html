@@ -30,7 +30,6 @@
   </div>
 </header>
 
-<!-- MOBILE MENU OVERLAY -->
 <div class="overlay" id="mobileMenuOverlay">
   <div class="overlay-box">
     <nav>
@@ -79,9 +78,6 @@
   </iframe>
 </section>
 
-
-
-
 <footer>
   <span>NO.4</span>
 </footer>
@@ -91,7 +87,8 @@
   <div class="overlay-box">
     <h2 data-pl="Zapisz się" data-en="Sign up">Sign up</h2>
 
-    <form class="reserve-form">
+    <!-- ZMIANA #1: ID -->
+    <form class="reserve-form" id="checkoutForm">
       <input
         type="text"
         placeholder="Name"
@@ -114,18 +111,24 @@
 
       <input
         type="tel"
-        placeholder="+48 509900691"
+        placeholder="+48 123456789"
         inputmode="numeric"
         maxlength="15"
         required
       >
 
-      <button type="submit" class="submit-btn" data-pl="Zapisz się" data-en="Sign up">
-        Sign up
-      </button>
+      <!-- ZMIANA #2: TEKST -->
+    <button
+      type="submit"
+      class="submit-btn"
+      data-pl="KUP BILET"
+      data-en="BUY TICKET"
+    >
+      BUY TICKET 
+    </button>
+
     </form>
 
-    <!-- ✅ NEW: FORM ERROR -->
     <p class="form-error" style="display:none;"></p>
 
     <div class="signup-result" style="display:none;">
@@ -149,7 +152,6 @@
   </div>
 </div>
 
-<!-- KONTAKT -->
 <!-- KONTAKT -->
 <div class="overlay" id="overlay-kontakt">
   <div class="overlay-box">
@@ -183,16 +185,19 @@
   </div>
 </div>
 
-
 <!-- WYDARZENIA -->
 <div class="overlay" id="overlay-wydarzenia">
   <div class="overlay-box">
     <h2>Events</h2>
-    <p>09.02</p>
-    <p>SECRET LOCATION</p>
+    <p>09.02.2026</p>
+    <p>XOXO CLUB</p>
     <p>WARSAW</p>
     <p>22:00 - 4:00</p>
-    <p></p>
+    <p>PARTY</p>
+    <p>MUSIC</p>
+    <p>FASHION SHOW</p>
+    <p>FREE FOOD</p>
+    <p>105 PLN TICKET</p>
     <p>TICKETS ARE LIMITED</p>
     <span class="close">×</span>
   </div>

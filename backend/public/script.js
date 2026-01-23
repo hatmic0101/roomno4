@@ -3,7 +3,7 @@
 // ===============================
 const API_URL = "https://api.roomno4.com/api";
 
-console.log("SCRIPT VERSION: SEE YOU");
+console.log("SCRIPT VERSION: STRIPE CHECKOUT");
 let isSubmitting = false;
 
 // ===============================
@@ -26,13 +26,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const submitBtn = reserveForm.querySelector('button[type="submit"]');
 
   // ===============================
-  // NEW: MOBILE MENU ELEMENTS
+  // MOBILE MENU ELEMENTS
   // ===============================
   const mobileMenuBtn = document.querySelector(".mobile-menu-btn");
   const mobileMenuOverlay = document.getElementById("mobileMenuOverlay");
 
   // ===============================
-  // NEW: FORM ERROR ELEMENT
+  // FORM ERROR
   // ===============================
   const formError = document.querySelector(".form-error");
 
@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ===============================
-  // INPUT HARD BLOCKS (UX)
+  // INPUT HARD BLOCKS
   // ===============================
   nameInput.addEventListener("input", () => {
     nameInput.value = nameInput.value.replace(/[^A-Za-zÀ-ž\s]/g, "");
@@ -155,7 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ===============================
-  // LOAD LIMIT (NIE KRYTYCZNE)
+  // LOAD LIMIT
   // ===============================
   fetch(`${API_URL}/status`)
     .then(r => r.json())
@@ -164,10 +164,10 @@ document.addEventListener("DOMContentLoaded", () => {
         limitNumberEl.textContent = d.limit;
       }
     })
-    .catch(() => console.warn("Backend offline (status)"));
+    .catch(() => console.warn("Backend offline"));
 
   // ===============================
-  // FORM SUBMIT
+  // FORM SUBMIT  🔴 STRIPE CHANGE
   // ===============================
   reserveForm.addEventListener("submit", async e => {
     e.preventDefault();
@@ -183,66 +183,46 @@ document.addEventListener("DOMContentLoaded", () => {
       const phone = phoneInput.value.trim();
 
       if (!/^[A-Za-zÀ-ž\s]{2,30}$/.test(name)) {
-        showError(
-          currentLang === "pl"
-            ? "Imię musi mieć 2–30 liter i nie może zawierać cyfr"
-            : "Name must be 2–30 letters and contain no digits"
-        );
+        showError(currentLang === "pl"
+          ? "Imię musi mieć 2–30 liter"
+          : "Name must be 2–30 letters");
         return;
       }
 
       if (email.length < 5 || email.length > 60) {
-        showError(
-          currentLang === "pl"
-            ? "Email musi mieć 5–60 znaków"
-            : "Email must be 5–60 characters long"
-        );
+        showError(currentLang === "pl"
+          ? "Email musi mieć 5–60 znaków"
+          : "Email must be 5–60 characters");
         return;
       }
 
       if (!/^[0-9+ ]{9,15}$/.test(phone)) {
-        showError(
-          currentLang === "pl"
-            ? "Numer telefonu musi mieć 9–15 cyfr i nie może zawierać liter"
-            : "Phone number must be 9–15 digits and contain no letters"
-        );
+        showError(currentLang === "pl"
+          ? "Numer telefonu niepoprawny"
+          : "Invalid phone number");
         return;
       }
 
-      const res = await fetch(`${API_URL}/signup`, {
+      // 🔴 STRIPE ENDPOINT
+      const res = await fetch(`${API_URL}/create-checkout-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, phone })
       });
 
       if (!res.ok) {
-        showError(
-          currentLang === "pl"
-            ? "Wystąpił błąd. Spróbuj ponownie."
-            : "Something went wrong. Please try again."
-        );
+        showError("Payment error. Try again.");
         return;
       }
 
-      const data = await res.json();
+      const { url } = await res.json();
 
-      reserveForm.style.display = "none";
-      signupResult.style.display = "block";
-      userNumberEl.textContent = `#${data.number}`;
-
-      if (limitNumberEl) {
-        limitNumberEl.textContent = data.limit;
-      }
-
-      reserveForm.reset();
+      // 🔴 REDIRECT TO STRIPE
+      window.location.href = url;
 
     } catch (err) {
-      console.error("REAL ERROR:", err);
-      showError(
-        currentLang === "pl"
-          ? "Serwer niedostępny. Spróbuj później."
-          : "Server unavailable. Try again later."
-      );
+      console.error(err);
+      showError("Server error");
     } finally {
       isSubmitting = false;
       submitBtn.disabled = false;
