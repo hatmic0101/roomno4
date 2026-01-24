@@ -8,7 +8,7 @@ import Stripe from "stripe";
 import QRCode from "qrcode";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
-import fetch from "node-fetch";
+
 
 dotenv.config();
 
