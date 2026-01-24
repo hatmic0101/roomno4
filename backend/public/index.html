@@ -262,6 +262,68 @@
     <span class="close">×</span>
   </div>
 </div>
+<!-- ================= BUY TICKET / FORM ================= -->
+<div class="overlay" id="reserveOverlay">
+  <div class="overlay-box">
+
+    <h2 data-pl="Kup bilet" data-en="Buy ticket">Buy ticket</h2>
+
+    <form class="reserve-form">
+
+      <!-- IMIĘ – TYLKO LITERY -->
+      <input
+        type="text"
+        name="name"
+        placeholder="Name"
+        data-pl="Imię"
+        data-en="Name"
+        required
+        minlength="2"
+        maxlength="30"
+        pattern="[A-Za-zÀ-ž\s]+"
+        title="Imię może zawierać tylko litery"
+      >
+
+      <!-- EMAIL -->
+      <input
+        type="email"
+        name="email"
+        placeholder="Email"
+        data-pl="Email"
+        data-en="Email"
+        required
+        minlength="5"
+        maxlength="60"
+      >
+
+      <!-- TELEFON – TYLKO CYFRY / + / SPACJE -->
+      <input
+        type="tel"
+        name="phone"
+        placeholder="+48 123 456 789"
+        inputmode="numeric"
+        pattern="[0-9+ ]{9,15}"
+        maxlength="15"
+        required
+        title="Numer może zawierać tylko cyfry"
+      >
+
+      <button
+        type="submit"
+        data-pl="Przejdź do płatności"
+        data-en="Proceed to payment"
+      >
+        Proceed to payment
+      </button>
+
+    </form>
+
+    <p class="form-error" style="display:none;"></p>
+
+    <span class="close">×</span>
+  </div>
+</div>
+
 
 <script src="script.js"></script>
 </body>
