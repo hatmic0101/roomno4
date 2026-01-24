@@ -1,15 +1,9 @@
-// ===============================
-// CONFIG
-// ===============================
 const API_URL = "https://api.roomno4.com/api";
 
 console.log("SCRIPT VERSION: STRIPE CHECKOUT – FIXED");
 
 let isSubmitting = false;
 
-// ===============================
-// WAIT FOR DOM
-// ===============================
 document.addEventListener("DOMContentLoaded", () => {
 
   const langToggle = document.getElementById("langToggle");
@@ -57,14 +51,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   langToggle.addEventListener("click", () => {
     currentLang = currentLang === "en" ? "pl" : "en";
+
     langToggle.classList.toggle("en");
     langToggle.classList.toggle("pl");
 
     document.querySelectorAll(".lang-text")
       .forEach(el => el.classList.remove("active"));
 
-    document.querySelector(`.lang-text.${currentLang}`)
-      .classList.add("active");
+    const activeLangEl = document.querySelector(`.lang-text.${currentLang}`);
+    if (activeLangEl) activeLangEl.classList.add("active");
 
     updateLanguage();
   });
@@ -84,11 +79,17 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-overlay]").forEach(link => {
     link.addEventListener("click", e => {
       e.preventDefault();
-      const overlay = document.getElementById(`overlay-${link.dataset.overlay}`);
+
+      const overlayId = `overlay-${link.dataset.overlay}`;
+      const overlay = document.getElementById(overlayId);
       if (!overlay) return;
+
       closeAllOverlays();
       overlay.style.display = "flex";
-      if (mobileMenuOverlay) mobileMenuOverlay.style.display = "none";
+
+      if (mobileMenuOverlay) {
+        mobileMenuOverlay.style.display = "none";
+      }
     });
   });
 
@@ -96,7 +97,9 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", e => {
       e.preventDefault();
       closeAllOverlays();
-      if (mobileMenuOverlay) mobileMenuOverlay.style.display = "none";
+      if (mobileMenuOverlay) {
+        mobileMenuOverlay.style.display = "none";
+      }
     });
   });
 
@@ -118,9 +121,11 @@ document.addEventListener("DOMContentLoaded", () => {
   fetch(`${API_URL}/status`)
     .then(r => r.json())
     .then(d => {
-      if (limitNumberEl) limitNumberEl.textContent = d.limit;
+      if (limitNumberEl) {
+        limitNumberEl.textContent = d.limit;
+      }
     })
-    .catch(() => console.warn("Backend offline"));
+    .catch(() => {});
 
   reserveForm.addEventListener("submit", async e => {
     e.preventDefault();
@@ -165,15 +170,18 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
 
       if (!res.ok || !data.url) {
-        showError("Payment error. Try again.");
+        showError(currentLang === "pl"
+          ? "Błąd płatności. Spróbuj ponownie."
+          : "Payment error. Try again.");
         return;
       }
 
       window.location.href = data.url;
 
     } catch (err) {
-      console.error("Checkout failed:", err);
-      showError("Server error. Try again later.");
+      showError(currentLang === "pl"
+        ? "Błąd serwera. Spróbuj później."
+        : "Server error. Try again later.");
     } finally {
       isSubmitting = false;
       submitBtn.disabled = false;

@@ -78,8 +78,20 @@
   </iframe>
 </section>
 
-<footer>
-  <span>NO.4</span>
+<footer class="footer">
+  <span class="footer-left">
+    <a href="#" data-overlay="regulamin" data-pl="Regulamin" data-en="Terms & Conditions">
+      Regulamin
+    </a>
+  </span>
+
+  <span class="footer-center">NO.4</span>
+
+  <span class="footer-right"
+    data-pl="Wszelkie prawa zastrzeżone"
+    data-en="All rights reserved">
+    Wszelkie prawa zastrzeżone
+  </span>
 </footer>
 
 <!-- SIGN UP -->
@@ -87,7 +99,6 @@
   <div class="overlay-box">
     <h2 data-pl="Zapisz się" data-en="Sign up">Sign up</h2>
 
-    <!-- ZMIANA #1: ID -->
     <form class="reserve-form" id="checkoutForm">
       <input
         type="text"
@@ -117,16 +128,13 @@
         required
       >
 
-      <!-- ZMIANA #2: TEKST -->
-    <button
-      type="submit"
-      class="submit-btn"
-      data-pl="KUP BILET"
-      data-en="BUY TICKET"
-    >
-      BUY TICKET 
-    </button>
-
+      <button
+        type="submit"
+        class="submit-btn"
+        data-pl="KUP BILET"
+        data-en="BUY TICKET">
+        BUY TICKET
+      </button>
     </form>
 
     <p class="form-error" style="display:none;"></p>
@@ -156,31 +164,10 @@
 <div class="overlay" id="overlay-kontakt">
   <div class="overlay-box">
     <h2>Contact</h2>
-
     <p>Maciej Guliński</p>
-
-    <p>
-      <a href="tel:+48509900691">
-        +48 509 900 691
-      </a>
-    </p>
-
-    <p>
-      <a
-        href="https://www.instagram.com/room.no4official/"
-        target="_blank"
-        rel="noopener"
-      >
-        instagram.com/roomno4.official
-      </a>
-    </p>
-
-    <p>
-      <a href="mailto:room.no4@op.pl">
-        room.no4@op.pl
-      </a>
-    </p>
-
+    <p><a href="tel:+48509900691">+48 509 900 691</a></p>
+    <p><a href="https://www.instagram.com/room.no4official/" target="_blank" rel="noopener">instagram.com/roomno4.official</a></p>
+    <p><a href="mailto:room.no4@op.pl">room.no4@op.pl</a></p>
     <span class="close">×</span>
   </div>
 </div>
@@ -208,6 +195,54 @@
   <div class="overlay-box">
     <h2>Coming Soon</h2>
     <p>More info soon</p>
+    <span class="close">×</span>
+  </div>
+</div>
+
+<!-- REGULAMIN -->
+<div class="overlay" id="overlay-regulamin">
+  <div class="overlay-box regulamin-box">
+
+    <h2
+      data-pl="Regulamin wydarzenia NO.4"
+      data-en="Terms and Conditions of the NO.4 Event">
+      Regulamin wydarzenia NO.4
+    </h2>
+
+    <p data-pl="§1. Postanowienia ogólne" data-en="§1. General provisions"></p>
+    <p data-pl="1. Regulamin określa zasady sprzedaży biletów, uczestnictwa oraz odpowiedzialności Organizatora i uczestników."
+       data-en="1. These terms define ticket sales rules, participation conditions, and responsibilities of the Organizer and participants."></p>
+    <p data-pl="2. Organizatorem wydarzenia jest NO.4."
+       data-en="2. The organizer of the event is NO.4."></p>
+    <p data-pl="3. Zakup biletu oznacza akceptację regulaminu."
+       data-en="3. Purchasing a ticket constitutes acceptance of these terms."></p>
+
+    <p data-pl="§2. Warunki uczestnictwa" data-en="§2. Conditions of participation"></p>
+    <p data-pl="4. Wydarzenie jest przeznaczone wyłącznie dla osób 18+."
+       data-en="4. The event is strictly for persons aged 18 or older."></p>
+    <p data-pl="5. Organizator ma prawo do weryfikacji wieku."
+       data-en="5. The Organizer reserves the right to verify age."></p>
+
+    <p data-pl="§3. Bilety" data-en="§3. Tickets"></p>
+    <p data-pl="6. Bilet uprawnia do jednorazowego wstępu."
+       data-en="6. The ticket grants one-time entry."></p>
+    <p data-pl="7. Bilety nie podlegają zwrotowi."
+       data-en="7. Tickets are non-refundable."></p>
+
+    <p data-pl="§4. Zasady porządkowe" data-en="§4. Rules of conduct"></p>
+    <p data-pl="8. Uczestnicy muszą przestrzegać prawa, regulaminu i poleceń ochrony."
+       data-en="8. Participants must comply with the law, these terms, and security instructions."></p>
+    <p data-pl="9. Osoby agresywne lub nietrzeźwe mogą zostać usunięte."
+       data-en="9. Aggressive or intoxicated persons may be removed."></p>
+
+    <p data-pl="§5. Odpowiedzialność" data-en="§5. Liability"></p>
+    <p data-pl="10. Uczestnik bierze udział na własną odpowiedzialność."
+       data-en="10. Participation is at the participant’s own risk."></p>
+
+    <p data-pl="§6. Postanowienia końcowe" data-en="§6. Final provisions"></p>
+    <p data-pl="11. Organizator zastrzega sobie prawo do zmian regulaminu."
+       data-en="11. The Organizer reserves the right to amend these terms."></p>
+
     <span class="close">×</span>
   </div>
 </div>
