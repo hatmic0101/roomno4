@@ -4,6 +4,7 @@
 const API_URL = "https://api.roomno4.com/api";
 
 console.log("SCRIPT VERSION: STRIPE CHECKOUT – FIXED");
+
 let isSubmitting = false;
 
 // ===============================
@@ -25,15 +26,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const phoneInput = reserveForm.querySelector('input[type="tel"]');
   const submitBtn = reserveForm.querySelector('button[type="submit"]');
 
-  // ===============================
-  // MOBILE MENU
-  // ===============================
   const mobileMenuBtn = document.querySelector(".mobile-menu-btn");
   const mobileMenuOverlay = document.getElementById("mobileMenuOverlay");
 
-  // ===============================
-  // FORM ERROR
-  // ===============================
   const formError = document.querySelector(".form-error");
 
   function showError(msg) {
@@ -48,9 +43,6 @@ document.addEventListener("DOMContentLoaded", () => {
     formError.textContent = "";
   }
 
-  // ===============================
-  // LANGUAGE
-  // ===============================
   let currentLang = "en";
 
   function updateLanguage() {
@@ -77,9 +69,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateLanguage();
   });
 
-  // ===============================
-  // INPUT FILTERS
-  // ===============================
   nameInput.addEventListener("input", () => {
     nameInput.value = nameInput.value.replace(/[^A-Za-zÀ-ž\s]/g, "");
   });
@@ -88,9 +77,6 @@ document.addEventListener("DOMContentLoaded", () => {
     phoneInput.value = phoneInput.value.replace(/[^0-9+ ]/g, "");
   });
 
-  // ===============================
-  // OVERLAYS
-  // ===============================
   function closeAllOverlays() {
     overlays.forEach(o => (o.style.display = "none"));
   }
@@ -114,18 +100,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  overlays.forEach(overlay => {
-    overlay.addEventListener("click", e => {
-      if (e.target === overlay && overlay.id !== "reserveOverlay") {
-        closeAllOverlays();
-        if (mobileMenuOverlay) mobileMenuOverlay.style.display = "none";
-      }
-    });
-  });
-
-  // ===============================
-  // MOBILE MENU
-  // ===============================
   if (mobileMenuBtn && mobileMenuOverlay) {
     mobileMenuBtn.addEventListener("click", () => {
       closeAllOverlays();
@@ -133,9 +107,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ===============================
-  // OPEN SIGN UP
-  // ===============================
   reserveBtn.addEventListener("click", () => {
     closeAllOverlays();
     clearError();
@@ -144,9 +115,6 @@ document.addEventListener("DOMContentLoaded", () => {
     reserveOverlay.style.display = "flex";
   });
 
-  // ===============================
-  // LOAD LIMIT
-  // ===============================
   fetch(`${API_URL}/status`)
     .then(r => r.json())
     .then(d => {
@@ -154,9 +122,6 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .catch(() => console.warn("Backend offline"));
 
-  // ===============================
-  // FORM SUBMIT – STRIPE
-  // ===============================
   reserveForm.addEventListener("submit", async e => {
     e.preventDefault();
     clearError();
@@ -197,35 +162,18 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({ name, email, phone })
       });
 
-      let data;
-      try {
-        data = await res.json();
-      } catch {
-        throw new Error("Invalid server response");
-      }
+      const data = await res.json();
 
-      if (!res.ok) {
-        console.error("Stripe error:", data);
-        showError(currentLang === "pl"
-          ? "Błąd płatności. Spróbuj ponownie."
-          : "Payment error. Try again.");
+      if (!res.ok || !data.url) {
+        showError("Payment error. Try again.");
         return;
       }
 
-      if (!data.url) {
-        console.error("Missing Stripe URL:", data);
-        showError("Payment configuration error");
-        return;
-      }
-
-      // ✅ REDIRECT TO STRIPE
       window.location.href = data.url;
 
     } catch (err) {
       console.error("Checkout failed:", err);
-      showError(currentLang === "pl"
-        ? "Błąd serwera. Spróbuj później."
-        : "Server error. Try again later.");
+      showError("Server error. Try again later.");
     } finally {
       isSubmitting = false;
       submitBtn.disabled = false;

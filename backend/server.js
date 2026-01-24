@@ -135,10 +135,13 @@ app.post("/api/create-checkout", async (req, res) => {
       return res.status(500).json({ error: "PRICE_ID missing" });
     }
 
+    const { email } = req.body;
+
     console.log("✅ Creating checkout with PRICE_ID:", process.env.PRICE_ID);
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      customer_email: email,
       line_items: [
         {
           price: process.env.PRICE_ID,
