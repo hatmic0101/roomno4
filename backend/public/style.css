@@ -383,3 +383,77 @@ main {
   letter-spacing: 1px;
   text-align: center;
 }
+
+/* ============================= */
+/* LEGAL FOOTER – DODANE */
+/* ============================= */
+
+.footer-legal {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 24px 40px;
+  font-size: 12px;
+  opacity: .6;
+}
+
+.footer-legal a {
+  color: var(--ivory);
+  text-decoration: none;
+  letter-spacing: 2px;
+  margin-right: 16px;
+}
+
+.footer-legal a:hover {
+  text-decoration: underline;
+}
+
+.footer-legal .footer-left {
+  justify-self: start;
+}
+
+.footer-legal .footer-center {
+  justify-self: center;
+}
+
+.footer-legal .footer-right {
+  justify-self: end;
+}
+
+/* ============================= */
+/* LEGAL OVERLAYS – SCROLL */
+/* ============================= */
+
+.overlay-box.legal {
+  max-width: 900px;
+  max-height: 80vh;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.overlay-box.legal h2 {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.overlay-box.legal p {
+  font-size: 13px;
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+
+/* MOBILE – LEGAL FOOTER */
+
+@media (max-width: 480px) {
+  .footer-legal {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .footer-legal .footer-left,
+  .footer-legal .footer-right {
+    justify-self: center;
+  }
+}
+
