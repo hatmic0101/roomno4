@@ -10,6 +10,16 @@ import crypto from "crypto";
 
 dotenv.config();
 
+/* ===============================
+   HARD FAIL IF ENV IS MISSING
+================================ */
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error("❌ STRIPE_SECRET_KEY is missing");
+}
+if (!process.env.PRICE_ID) {
+  throw new Error("❌ PRICE_ID is missing");
+}
+
 const { Pool } = pkg;
 const app = express();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -44,7 +54,6 @@ app.use(
 
 /* ===============================
    STRIPE WEBHOOK (RAW BODY!)
-   MUSI BYĆ PRZED express.json()
 ================================ */
 app.post(
   "/api/stripe/webhook",
@@ -102,7 +111,7 @@ Ticket: ${ticketCode}`
 );
 
 /* ===============================
-   JSON (PO WEBHOOKU)
+   JSON (AFTER WEBHOOK)
 ================================ */
 app.use(express.json());
 
@@ -128,13 +137,11 @@ async function sendTelegramMessage(text) {
 }
 
 /* ===============================
-   API
+   STATUS
 ================================ */
-
-// STATUS (zostawione – używane w JS)
 app.get("/api/status", async (req, res) => {
   try {
-    const result = await pool.query("SELECT COUNT(*) FROM signups");
+    const result = await pool.query("SELECT COUNT(*) FROM tickets");
     res.json({
       limit: 400,
       count: Number(result.rows[0].count),
@@ -149,6 +156,8 @@ app.get("/api/status", async (req, res) => {
 ================================ */
 app.post("/api/create-checkout", async (req, res) => {
   try {
+    console.log("✅ USING PRICE_ID:", process.env.PRICE_ID);
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card", "blik"],
@@ -165,13 +174,13 @@ app.post("/api/create-checkout", async (req, res) => {
 
     res.json({ url: session.url });
   } catch (err) {
-    console.error("Stripe checkout error:", err);
+    console.error("❌ Stripe checkout error:", err);
     res.status(500).json({ error: "Stripe error" });
   }
 });
 
 /* ===============================
-   GET TICKET FOR SUCCESS PAGE
+   SUCCESS PAGE – GET TICKET
 ================================ */
 app.get("/api/ticket", async (req, res) => {
   const { session_id } = req.query;
@@ -181,7 +190,6 @@ app.get("/api/ticket", async (req, res) => {
   }
 
   try {
-    // 1. Pobierz sesję Stripe
     const session = await stripe.checkout.sessions.retrieve(session_id);
 
     if (session.payment_status !== "paid") {
@@ -193,7 +201,6 @@ app.get("/api/ticket", async (req, res) => {
       return res.status(404).json({ error: "Email not found" });
     }
 
-    // 2. Pobierz ticket z DB
     const { rows } = await pool.query(
       `SELECT ticket_code, qr_data
        FROM tickets
@@ -207,7 +214,6 @@ app.get("/api/ticket", async (req, res) => {
       return res.status(404).json({ error: "Ticket not found" });
     }
 
-    // 3. Zwróć QR dla klienta
     res.json({
       email,
       ticketCode: rows[0].ticket_code,
@@ -232,5 +238,5 @@ app.get("*", (req, res) => {
 ================================ */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
+  console.log("🚀 Server running on port", PORT);
 });
