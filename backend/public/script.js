@@ -43,26 +43,11 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("[data-pl]").forEach(el => {
       if (el.tagName === "INPUT") {
         el.placeholder = el.dataset[currentLang];
-      } else if (el.dataset[currentLang]) {
+      } else {
         el.textContent = el.dataset[currentLang];
       }
     });
   }
-
-  // ============================
-  // DODANE: TREŚCI PRAWNE PL / EN
-  // ============================
-  function updateLegalLanguage() {
-    document.querySelectorAll("[data-pl][data-en]").forEach(el => {
-      el.style.display = "none";
-    });
-
-    document.querySelectorAll(`[data-${currentLang}]`).forEach(el => {
-      if (!el.hasAttribute("data-pl") || !el.hasAttribute("data-en")) return;
-      el.style.display = "block";
-    });
-  }
-  // ============================
 
   langToggle.addEventListener("click", () => {
     currentLang = currentLang === "en" ? "pl" : "en";
@@ -77,7 +62,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (activeLangEl) activeLangEl.classList.add("active");
 
     updateLanguage();
-    updateLegalLanguage(); // DODANE
   });
 
   nameInput.addEventListener("input", () => {
@@ -102,8 +86,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       closeAllOverlays();
       overlay.style.display = "flex";
-
-      updateLegalLanguage(); // DODANE
 
       if (mobileMenuOverlay) {
         mobileMenuOverlay.style.display = "none";
@@ -207,5 +189,4 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   updateLanguage();
-  updateLegalLanguage(); // DODANE NA START
 });
