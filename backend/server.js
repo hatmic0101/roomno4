@@ -7,6 +7,7 @@ import pkg from "pg";
 import Stripe from "stripe";
 import QRCode from "qrcode";
 import crypto from "crypto";
+import nodemailer from "nodemailer";
 
 dotenv.config();
 
@@ -14,7 +15,7 @@ const { Pool } = pkg;
 const app = express();
 
 /* ===============================
-   STRIPE (EXPLICIT VERSION)
+   STRIPE
 ================================ */
 if (!process.env.STRIPE_SECRET_KEY) {
   console.error("❌ STRIPE_SECRET_KEY missing");
@@ -39,14 +40,24 @@ const pool = new Pool({
 });
 
 /* ===============================
+   SMTP (RESEND)
+================================ */
+const mailer = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+/* ===============================
    CORS
 ================================ */
 app.use(
   cors({
-    origin: [
-      "https://roomno4.com",
-      "https://www.roomno4.com",
-    ],
+    origin: ["https://roomno4.com", "https://www.roomno4.com"],
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Stripe-Signature"],
   })
@@ -54,6 +65,7 @@ app.use(
 
 /* ===============================
    STRIPE WEBHOOK (RAW BODY!)
+   ⚠️ MUSI BYĆ PRZED express.json()
 ================================ */
 app.post(
   "/api/stripe/webhook",
@@ -77,20 +89,45 @@ app.post(
       const session = event.data.object;
       const email = session.customer_details?.email;
 
-      if (!email) return res.json({ received: true });
+      if (!email) {
+        console.log("⚠️ No email in session");
+        return res.json({ received: true });
+      }
 
       const client = await pool.connect();
+
       try {
         const ticketCode = crypto.randomUUID();
         const qrData = await QRCode.toDataURL(ticketCode);
 
         await client.query(
-          `INSERT INTO tickets (email, ticket_code, qr_data, paid)
-           VALUES ($1, $2, $3, true)`,
+          `
+          INSERT INTO tickets (email, ticket_code, qr_data, paid)
+          VALUES ($1, $2, $3, true)
+        `,
           [email, ticketCode, qrData]
         );
+
+        await mailer.sendMail({
+          from: process.env.SMTP_FROM,
+          to: email,
+          subject: "Your ticket – NO.4",
+          html: `
+            <div style="background:#000;color:#f5f3ee;padding:32px;text-align:center;font-family:Arial">
+              <h2>Payment successful</h2>
+              <p><strong>Your ticket code:</strong></p>
+              <h3>${ticketCode}</h3>
+              <div style="margin:24px 0">
+                <img src="${qrData}" width="260" />
+              </div>
+              <p>Please show this QR code at the entrance.</p>
+            </div>
+          `,
+        });
+
+        console.log("📧 Ticket email sent:", email);
       } catch (err) {
-        console.error("❌ DB error:", err);
+        console.error("❌ Webhook processing error:", err);
       } finally {
         client.release();
       }
@@ -131,23 +168,16 @@ app.get("/api/status", async (req, res) => {
 ================================ */
 app.post("/api/create-checkout", async (req, res) => {
   try {
+    const { email } = req.body;
+
     if (!process.env.PRICE_ID) {
       return res.status(500).json({ error: "PRICE_ID missing" });
     }
 
-    const { email } = req.body;
-
-    console.log("✅ Creating checkout with PRICE_ID:", process.env.PRICE_ID);
-
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: email,
-      line_items: [
-        {
-          price: process.env.PRICE_ID,
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: process.env.PRICE_ID, quantity: 1 }],
       success_url:
         "https://roomno4.com/success?session_id={CHECKOUT_SESSION_ID}",
       cancel_url: "https://roomno4.com/cancel",
@@ -155,16 +185,13 @@ app.post("/api/create-checkout", async (req, res) => {
 
     res.json({ url: session.url });
   } catch (err) {
-    console.error("❌ Stripe error FULL:", err);
-    res.status(500).json({
-      message: err.message,
-      type: err.type,
-    });
+    console.error("❌ Stripe error:", err);
+    res.status(500).json({ error: "Stripe error" });
   }
 });
 
 /* ===============================
-   SUCCESS PAGE – GET TICKET
+   GET TICKET (SUCCESS PAGE)
 ================================ */
 app.get("/api/ticket", async (req, res) => {
   const { session_id } = req.query;
@@ -174,22 +201,19 @@ app.get("/api/ticket", async (req, res) => {
 
   try {
     const session = await stripe.checkout.sessions.retrieve(session_id);
-
     if (session.payment_status !== "paid") {
       return res.status(403).json({ error: "Not paid" });
     }
 
     const email = session.customer_details?.email;
-    if (!email) {
-      return res.status(404).json({ error: "Email not found" });
-    }
-
     const { rows } = await pool.query(
-      `SELECT ticket_code, qr_data
-       FROM tickets
-       WHERE email = $1
-       ORDER BY created_at DESC
-       LIMIT 1`,
+      `
+      SELECT ticket_code, qr_data
+      FROM tickets
+      WHERE email = $1
+      ORDER BY created_at DESC
+      LIMIT 1
+    `,
       [email]
     );
 
