@@ -10,19 +10,19 @@ import crypto from "crypto";
 
 dotenv.config();
 
-/* ===============================
-   HARD FAIL IF ENV IS MISSING
-================================ */
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("❌ STRIPE_SECRET_KEY is missing");
-}
-if (!process.env.PRICE_ID) {
-  throw new Error("❌ PRICE_ID is missing");
-}
-
 const { Pool } = pkg;
 const app = express();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+/* ===============================
+   STRIPE (EXPLICIT VERSION)
+================================ */
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.error("❌ STRIPE_SECRET_KEY missing");
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2023-10-16",
+});
 
 /* ===============================
    PATH FIX (ESM)
@@ -69,7 +69,7 @@ app.post(
         process.env.STRIPE_WEBHOOK_SECRET
       );
     } catch (err) {
-      console.error("Webhook signature error:", err.message);
+      console.error("❌ Webhook signature error:", err.message);
       return res.status(400).send("Webhook Error");
     }
 
@@ -77,12 +77,9 @@ app.post(
       const session = event.data.object;
       const email = session.customer_details?.email;
 
-      if (!email) {
-        return res.json({ received: true });
-      }
+      if (!email) return res.json({ received: true });
 
       const client = await pool.connect();
-
       try {
         const ticketCode = crypto.randomUUID();
         const qrData = await QRCode.toDataURL(ticketCode);
@@ -92,15 +89,8 @@ app.post(
            VALUES ($1, $2, $3, true)`,
           [email, ticketCode, qrData]
         );
-
-        await sendTelegramMessage(
-`🎟️ PAID TICKET
-Email: ${email}
-Ticket: ${ticketCode}`
-        );
-
       } catch (err) {
-        console.error("DB / QR error:", err);
+        console.error("❌ DB error:", err);
       } finally {
         client.release();
       }
@@ -121,22 +111,6 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 /* ===============================
-   TELEGRAM
-================================ */
-async function sendTelegramMessage(text) {
-  const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
-
-  await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: process.env.TELEGRAM_CHAT_ID,
-      text,
-    }),
-  });
-}
-
-/* ===============================
    STATUS
 ================================ */
 app.get("/api/status", async (req, res) => {
@@ -146,7 +120,8 @@ app.get("/api/status", async (req, res) => {
       limit: 400,
       count: Number(result.rows[0].count),
     });
-  } catch {
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -156,11 +131,14 @@ app.get("/api/status", async (req, res) => {
 ================================ */
 app.post("/api/create-checkout", async (req, res) => {
   try {
-    console.log("✅ USING PRICE_ID:", process.env.PRICE_ID);
+    if (!process.env.PRICE_ID) {
+      return res.status(500).json({ error: "PRICE_ID missing" });
+    }
+
+    console.log("✅ Creating checkout with PRICE_ID:", process.env.PRICE_ID);
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card", "blik"],
       line_items: [
         {
           price: process.env.PRICE_ID,
@@ -174,8 +152,11 @@ app.post("/api/create-checkout", async (req, res) => {
 
     res.json({ url: session.url });
   } catch (err) {
-    console.error("❌ Stripe checkout error:", err);
-    res.status(500).json({ error: "Stripe error" });
+    console.error("❌ Stripe error FULL:", err);
+    res.status(500).json({
+      message: err.message,
+      type: err.type,
+    });
   }
 });
 
@@ -184,7 +165,6 @@ app.post("/api/create-checkout", async (req, res) => {
 ================================ */
 app.get("/api/ticket", async (req, res) => {
   const { session_id } = req.query;
-
   if (!session_id) {
     return res.status(400).json({ error: "Missing session_id" });
   }
@@ -210,7 +190,7 @@ app.get("/api/ticket", async (req, res) => {
       [email]
     );
 
-    if (rows.length === 0) {
+    if (!rows.length) {
       return res.status(404).json({ error: "Ticket not found" });
     }
 
@@ -219,9 +199,8 @@ app.get("/api/ticket", async (req, res) => {
       ticketCode: rows[0].ticket_code,
       qr: rows[0].qr_data,
     });
-
   } catch (err) {
-    console.error("Ticket fetch error:", err);
+    console.error("❌ Ticket fetch error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -236,7 +215,7 @@ app.get("*", (req, res) => {
 /* ===============================
    START
 ================================ */
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log("🚀 Server running on port", PORT);
 });
