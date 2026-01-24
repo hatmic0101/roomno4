@@ -37,24 +37,32 @@ document.addEventListener("DOMContentLoaded", () => {
     formError.textContent = "";
   }
 
-  function resetForm() {
-    reserveForm.reset();
-    clearError();
-    submitBtn.disabled = false;
-    isSubmitting = false;
-  }
-
   let currentLang = "en";
 
   function updateLanguage() {
     document.querySelectorAll("[data-pl]").forEach(el => {
       if (el.tagName === "INPUT") {
         el.placeholder = el.dataset[currentLang];
-      } else {
+      } else if (el.dataset[currentLang]) {
         el.textContent = el.dataset[currentLang];
       }
     });
   }
+
+  // ============================
+  // DODANE: TREŚCI PRAWNE PL / EN
+  // ============================
+  function updateLegalLanguage() {
+    document.querySelectorAll("[data-pl][data-en]").forEach(el => {
+      el.style.display = "none";
+    });
+
+    document.querySelectorAll(`[data-${currentLang}]`).forEach(el => {
+      if (!el.hasAttribute("data-pl") || !el.hasAttribute("data-en")) return;
+      el.style.display = "block";
+    });
+  }
+  // ============================
 
   langToggle.addEventListener("click", () => {
     currentLang = currentLang === "en" ? "pl" : "en";
@@ -69,6 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (activeLangEl) activeLangEl.classList.add("active");
 
     updateLanguage();
+    updateLegalLanguage(); // DODANE
   });
 
   nameInput.addEventListener("input", () => {
@@ -93,6 +102,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       closeAllOverlays();
       overlay.style.display = "flex";
+
+      updateLegalLanguage(); // DODANE
 
       if (mobileMenuOverlay) {
         mobileMenuOverlay.style.display = "none";
@@ -119,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   reserveBtn.addEventListener("click", () => {
     closeAllOverlays();
-    resetForm();
+    clearError();
     reserveForm.style.display = "flex";
     signupResult.style.display = "none";
     reserveOverlay.style.display = "flex";
@@ -196,5 +207,5 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   updateLanguage();
-  resetForm();
+  updateLegalLanguage(); // DODANE NA START
 });
