@@ -3,7 +3,7 @@
 // ===============================
 const API_URL = "https://api.roomno4.com/api";
 
-console.log("SCRIPT VERSION: STRIPE CHECKOUT");
+console.log("SCRIPT VERSION: STRIPE CHECKOUT – FIXED");
 let isSubmitting = false;
 
 // ===============================
@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const submitBtn = reserveForm.querySelector('button[type="submit"]');
 
   // ===============================
-  // MOBILE MENU ELEMENTS
+  // MOBILE MENU
   // ===============================
   const mobileMenuBtn = document.querySelector(".mobile-menu-btn");
   const mobileMenuOverlay = document.getElementById("mobileMenuOverlay");
@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ===============================
-  // INPUT HARD BLOCKS
+  // INPUT FILTERS
   // ===============================
   nameInput.addEventListener("input", () => {
     nameInput.value = nameInput.value.replace(/[^A-Za-zÀ-ž\s]/g, "");
@@ -102,22 +102,15 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!overlay) return;
       closeAllOverlays();
       overlay.style.display = "flex";
-
-      if (mobileMenuOverlay) {
-        mobileMenuOverlay.style.display = "none";
-      }
+      if (mobileMenuOverlay) mobileMenuOverlay.style.display = "none";
     });
   });
 
   document.querySelectorAll(".close").forEach(btn => {
     btn.addEventListener("click", e => {
       e.preventDefault();
-      e.stopPropagation();
       closeAllOverlays();
-
-      if (mobileMenuOverlay) {
-        mobileMenuOverlay.style.display = "none";
-      }
+      if (mobileMenuOverlay) mobileMenuOverlay.style.display = "none";
     });
   });
 
@@ -125,16 +118,13 @@ document.addEventListener("DOMContentLoaded", () => {
     overlay.addEventListener("click", e => {
       if (e.target === overlay && overlay.id !== "reserveOverlay") {
         closeAllOverlays();
-
-        if (mobileMenuOverlay) {
-          mobileMenuOverlay.style.display = "none";
-        }
+        if (mobileMenuOverlay) mobileMenuOverlay.style.display = "none";
       }
     });
   });
 
   // ===============================
-  // OPEN MOBILE MENU
+  // MOBILE MENU
   // ===============================
   if (mobileMenuBtn && mobileMenuOverlay) {
     mobileMenuBtn.addEventListener("click", () => {
@@ -160,14 +150,12 @@ document.addEventListener("DOMContentLoaded", () => {
   fetch(`${API_URL}/status`)
     .then(r => r.json())
     .then(d => {
-      if (limitNumberEl) {
-        limitNumberEl.textContent = d.limit;
-      }
+      if (limitNumberEl) limitNumberEl.textContent = d.limit;
     })
     .catch(() => console.warn("Backend offline"));
 
   // ===============================
-  // FORM SUBMIT  🔴 STRIPE CHANGE
+  // FORM SUBMIT – STRIPE
   // ===============================
   reserveForm.addEventListener("submit", async e => {
     e.preventDefault();
@@ -203,26 +191,41 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // 🔴 STRIPE ENDPOINT
-        const res = await fetch(`${API_URL}/create-checkout`, {
+      const res = await fetch(`${API_URL}/create-checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, phone })
       });
 
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Invalid server response");
+      }
+
       if (!res.ok) {
-        showError("Payment error. Try again.");
+        console.error("Stripe error:", data);
+        showError(currentLang === "pl"
+          ? "Błąd płatności. Spróbuj ponownie."
+          : "Payment error. Try again.");
         return;
       }
 
-      const { url } = await res.json();
+      if (!data.url) {
+        console.error("Missing Stripe URL:", data);
+        showError("Payment configuration error");
+        return;
+      }
 
-      // 🔴 REDIRECT TO STRIPE
-      window.location.href = url;
+      // ✅ REDIRECT TO STRIPE
+      window.location.href = data.url;
 
     } catch (err) {
-      console.error(err);
-      showError("Server error");
+      console.error("Checkout failed:", err);
+      showError(currentLang === "pl"
+        ? "Błąd serwera. Spróbuj później."
+        : "Server error. Try again later.");
     } finally {
       isSubmitting = false;
       submitBtn.disabled = false;
