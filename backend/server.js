@@ -221,7 +221,7 @@ app.get("/api/ticket", async (req, res) => {
 });
 
 /* ===============================
-   SIGN UP (POPRAWNIE PRZED LISTEN)
+   SIGN UP – POPRAWIONE (NUMBER)
 ================================ */
 app.post("/api/signup", async (req, res) => {
   const { name, email, phone } = req.body;
@@ -238,16 +238,22 @@ app.post("/api/signup", async (req, res) => {
   const client = await pool.connect();
 
   try {
-    const result = await client.query(
-      `
-      INSERT INTO signups (name, email, phone)
-      VALUES ($1, $2, $3)
-      RETURNING id
-    `,
-      [name, email, phone]
+    const { rows: n } = await client.query(
+      "SELECT COALESCE(MAX(number), 0) + 1 AS next FROM signups"
     );
 
-    const number = result.rows[0].id;
+    const nextNumber = n[0].next;
+
+    const result = await client.query(
+      `
+      INSERT INTO signups (number, name, email, phone)
+      VALUES ($1, $2, $3, $4)
+      RETURNING number
+    `,
+      [nextNumber, name, email, phone]
+    );
+
+    const number = result.rows[0].number;
 
     const telegramText =
       `NEW SIGN UP\n\n` +
