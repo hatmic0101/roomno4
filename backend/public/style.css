@@ -456,4 +456,62 @@ main {
     justify-self: center;
   }
 }
+/* ================================================= */
+/* SIGN UP – DOKŁADNIE JAK BUY TICKET (DODATEK) */
+/* ================================================= */
+
+.signup-btn {
+  background: none;
+  border: 1px solid rgba(245,243,238,.4);
+  border-radius: 999px;
+  padding: 12px 36px;
+  color: var(--ivory);
+  letter-spacing: 3px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background .4s, color .4s;
+}
+
+.signup-btn:hover {
+  background: var(--ivory);
+  color: #000;
+}
+
+#overlay-signup .overlay-box {
+  min-width: 420px;
+}
+
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.signup-form input {
+  background: none;
+  border: 1px solid rgba(245,243,238,.35);
+  padding: 12px;
+  color: var(--ivory);
+}
+
+.signup-form button {
+  background: var(--ivory);
+  color: #000;
+  border: none;
+  padding: 12px;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+
+.signup-result {
+  margin-top: 32px;
+  text-align: center;
+}
+
+.signup-number {
+  font-size: 26px;
+  letter-spacing: 4px;
+  margin-bottom: 12px;
+}
 
