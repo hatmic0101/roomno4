@@ -9,7 +9,6 @@ import QRCode from "qrcode";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 
-
 dotenv.config();
 
 const { Pool } = pkg;
@@ -45,6 +44,9 @@ app.use(
   })
 );
 
+/* ===============================
+   STRIPE WEBHOOK
+================================ */
 app.post(
   "/api/stripe/webhook",
   express.raw({ type: "application/json" }),
@@ -140,9 +142,15 @@ app.post(
   }
 );
 
+/* ===============================
+   MIDDLEWARE
+================================ */
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
+/* ===============================
+   STATUS
+================================ */
 app.get("/api/status", async (req, res) => {
   const result = await pool.query("SELECT COUNT(*) FROM tickets");
   const count = Number(result.rows[0].count);
@@ -153,6 +161,9 @@ app.get("/api/status", async (req, res) => {
   });
 });
 
+/* ===============================
+   CREATE CHECKOUT
+================================ */
 app.post("/api/create-checkout", async (req, res) => {
   const { email } = req.body;
 
@@ -173,6 +184,9 @@ app.post("/api/create-checkout", async (req, res) => {
   res.json({ url: session.url });
 });
 
+/* ===============================
+   GET TICKET
+================================ */
 app.get("/api/ticket", async (req, res) => {
   const { session_id } = req.query;
 
@@ -206,8 +220,68 @@ app.get("/api/ticket", async (req, res) => {
   });
 });
 
+/* ===============================
+   SIGN UP (POPRAWNIE PRZED LISTEN)
+================================ */
+app.post("/api/signup", async (req, res) => {
+  const { name, email, phone } = req.body;
+
+  if (
+    !/^[A-Za-zÀ-ž\s]{2,30}$/.test(name) ||
+    email.length < 5 ||
+    email.length > 60 ||
+    !/^[0-9]{9,15}$/.test(phone)
+  ) {
+    return res.status(400).json({ error: "INVALID_DATA" });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    const result = await client.query(
+      `
+      INSERT INTO signups (name, email, phone)
+      VALUES ($1, $2, $3)
+      RETURNING id
+    `,
+      [name, email, phone]
+    );
+
+    const number = result.rows[0].id;
+
+    const telegramText =
+      `NEW SIGN UP\n\n` +
+      `#${number}\n` +
+      `Name: ${name}\n` +
+      `Email: ${email}\n` +
+      `Phone: ${phone}`;
+
+    await fetch(
+      `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: process.env.TELEGRAM_CHAT_ID,
+          text: telegramText,
+        }),
+      }
+    );
+
+    res.json({ number });
+  } finally {
+    client.release();
+  }
+});
+
+/* ===============================
+   SPA FALLBACK
+================================ */
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
+/* ===============================
+   START SERVER
+================================ */
 app.listen(process.env.PORT || 8080);

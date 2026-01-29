@@ -51,6 +51,13 @@
   </div>
 
   <div class="cta">
+    <button class="signup-btn" data-overlay="signup">
+    SIGN UP
+    </button>
+  </div>
+
+
+  <div class="cta">
     <button class="reserve-btn" data-pl="KUP BILET" data-en="BUY TICKET">
       BUY TICKET
     </button>
@@ -323,6 +330,34 @@
     <span class="close">×</span>
   </div>
 </div>
+<div class="overlay" id="overlay-signup">
+  <div class="overlay-box">
+
+    <h2>SIGN UP</h2>
+
+    <form class="signup-form">
+
+      <input type="text" name="name" placeholder="Name" required minlength="2" maxlength="30">
+
+      <input type="email" name="email" placeholder="Email" required maxlength="60">
+
+      <input type="tel" name="phone" placeholder="Phone" required maxlength="15">
+
+      <button type="submit">SIGN UP</button>
+
+    </form>
+
+    <div class="signup-result" style="display:none;">
+      <h3 class="signup-number"></h3>
+      <p>see you</p>
+    </div>
+
+    <p class="form-error" style="display:none;"></p>
+
+    <span class="close">×</span>
+  </div>
+</div>
+
 
 
 <script src="script.js"></script>

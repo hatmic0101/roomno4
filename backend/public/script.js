@@ -144,7 +144,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const email = reserveForm.email.value.trim();
       const phone = reserveForm.phone.value.trim();
 
-      // walidacja
       if (!/^[A-Za-zÀ-ž\s]{2,30}$/.test(name)) {
         showError(
           currentLang === "pl"
@@ -182,7 +181,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         const data = await res.json();
-
         if (!res.ok || !data.url) throw new Error();
 
         window.location.href = data.url;
@@ -203,6 +201,45 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!formError) return;
     formError.textContent = msg;
     formError.style.display = "block";
+  }
+
+  // ===============================
+  // SIGN UP
+  // ===============================
+  const signupForm = document.querySelector(".signup-form");
+  const signupResult = document.querySelector(".signup-result");
+  const signupNumber = document.querySelector(".signup-number");
+
+  if (signupForm) {
+    signupForm.addEventListener("submit", async e => {
+      e.preventDefault();
+
+      const name = signupForm.name.value.trim();
+      const email = signupForm.email.value.trim();
+      const phone = signupForm.phone.value.trim();
+
+      if (!/^[A-Za-zÀ-ž\s]{2,30}$/.test(name)) return;
+      if (email.length < 5 || email.length > 60) return;
+      if (!/^[0-9]{9,15}$/.test(phone)) return;
+
+      try {
+        const res = await fetch(`${API_URL}/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, phone })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error();
+
+        signupNumber.textContent = `#${data.number}`;
+        signupResult.style.display = "block";
+        signupForm.reset();
+
+      } catch (e) {
+        console.error(e);
+      }
+    });
   }
 
 });
